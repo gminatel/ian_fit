@@ -1,0 +1,1014 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>IAN FIT</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="IAN FIT">
+<meta name="theme-color" content="#080808">
+<link rel="manifest" href="data:application/json;charset=utf-8,%7B%22name%22%3A%22IAN%20FIT%22%2C%22short_name%22%3A%22IAN%20FIT%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%23080808%22%2C%22theme_color%22%3A%22%23080808%22%2C%22orientation%22%3A%22portrait%22%7D">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#09080f;--surface:#110f1a;--surface2:#1a1726;--surface3:#231f32;
+  --border:#2e2940;--accent:#b97fff;--accent2:#e040fb;--accent3:#7ee8fa;
+  --red:#f14355;--orange:#f1a035;--text:#f0eeff;--muted:#554f70;--muted2:#8880aa;
+  --done-bg:#130d22;--done-border:#4a2d80;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;padding-top:env(safe-area-inset-top,0px);}
+button,input,select{font-family:'DM Sans',sans-serif;font-size:16px;}
+
+.screen{display:none;flex-direction:column;min-height:100vh;padding-bottom:80px;}
+.screen.active{display:flex;}
+
+/* NAV */
+.nav{position:fixed;bottom:0;left:0;right:0;z-index:200;background:var(--surface);border-top:1px solid var(--border);display:flex;padding-bottom:env(safe-area-inset-bottom,0px);}
+.nav-btn{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 0;background:transparent;border:none;color:var(--muted2);font-size:9px;font-weight:600;letter-spacing:0.5px;text-transform:uppercase;transition:color 0.2s;}
+.nav-btn.active{color:var(--accent);}
+.nav-icon{font-size:18px;line-height:1;}
+
+/* SHARED */
+.page-header{padding:20px 16px 14px;background:var(--surface);border-bottom:1px solid var(--border);}
+.page-title{font-family:'Bebas Neue',sans-serif;font-size:30px;letter-spacing:2px;color:var(--accent);}
+.page-sub{font-size:12px;color:var(--muted2);margin-top:2px;}
+.section-title{padding:14px 16px 6px;font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--muted2);}
+
+/* HOME */
+.home-header{padding:22px 20px 14px;background:var(--surface);border-bottom:1px solid var(--border);}
+.home-greeting{font-size:12px;color:var(--muted2);letter-spacing:1px;text-transform:uppercase;}
+.home-title{font-family:'Bebas Neue',sans-serif;font-size:34px;letter-spacing:2px;color:var(--accent);line-height:1;margin-top:2px;}
+.home-subtitle{font-size:11px;color:var(--muted2);margin-top:4px;}
+
+.period-alert{margin:12px 16px 0;border-radius:12px;padding:12px 14px;display:none;}
+.period-alert.show{display:flex;align-items:flex-start;gap:10px;}
+.period-alert.warn{background:#1a1400;border:1.5px solid #5a4500;}
+.period-alert.danger{background:#1a0000;border:1.5px solid #5a0000;}
+.period-icon{font-size:22px;flex-shrink:0;}
+.period-title{font-size:13px;font-weight:700;}
+.period-alert.warn .period-title{color:#f1d435;}
+.period-alert.danger .period-title{color:#f14335;}
+.period-sub{font-size:11px;color:var(--muted2);margin-top:3px;line-height:1.5;}
+
+/* Joelho alert */
+.knee-alert{margin:10px 16px 0;border-radius:10px;padding:10px 13px;background:#130d22;border:1px solid #4a2d80;display:flex;align-items:flex-start;gap:8px;}
+.knee-alert-text{font-size:11px;color:#b97fff;line-height:1.5;}
+.knee-alert-text strong{color:#d4aaff;display:block;margin-bottom:2px;}
+
+.day-cards{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;padding:14px 16px 0;}
+.day-card{background:var(--surface);border:1.5px solid var(--border);border-radius:14px;padding:13px;cursor:pointer;transition:all 0.2s;position:relative;overflow:hidden;}
+.day-card.next{border-color:var(--accent);background:#120d22;}
+.day-card.done-card{border-color:var(--done-border);background:var(--done-bg);opacity:0.75;}
+.day-card.locked{opacity:0.4;}
+.day-card:active{transform:scale(0.97);}
+.day-card-letter{font-family:'Bebas Neue',sans-serif;font-size:36px;color:var(--accent);line-height:1;}
+.day-card.done-card .day-card-letter{color:var(--accent3);}
+.day-card.locked .day-card-letter{color:var(--muted);}
+.day-card-name{font-size:10px;font-weight:600;color:var(--text);margin-top:2px;line-height:1.3;}
+.day-card-count{font-size:10px;color:var(--muted2);margin-top:3px;}
+.day-card-badge{position:absolute;top:6px;right:6px;font-size:9px;font-weight:700;padding:2px 5px;border-radius:4px;letter-spacing:0.5px;}
+.badge-next{background:var(--accent);color:#000;}
+.badge-done{background:var(--done-border);color:var(--accent3);}
+.badge-locked{background:var(--surface3);color:var(--muted2);}
+.badge-debt{background:#5a2200;color:var(--orange);}
+
+.start-btn{display:block;width:calc(100% - 32px);margin:12px 16px 0;background:var(--accent);color:#000;border:none;border-radius:14px;padding:15px;font-size:15px;font-weight:700;letter-spacing:1px;text-transform:uppercase;transition:transform 0.15s;}
+.start-btn:active{transform:scale(0.97);}
+
+.week-stats{margin:0 16px 4px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;}
+.stat-box{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px;text-align:center;}
+.stat-value{font-family:'Bebas Neue',sans-serif;font-size:30px;color:var(--accent);line-height:1;}
+.stat-label{font-size:9px;color:var(--muted2);letter-spacing:0.5px;text-transform:uppercase;margin-top:3px;}
+
+.recent-list{padding:0 16px;display:flex;flex-direction:column;gap:8px;}
+.recent-item{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:11px 13px;display:flex;align-items:center;justify-content:space-between;}
+.recent-left{display:flex;align-items:center;gap:10px;}
+.recent-badge{width:34px;height:34px;border-radius:8px;background:var(--done-bg);border:1px solid var(--done-border);display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:18px;color:var(--accent);}
+.recent-name{font-size:13px;font-weight:600;}
+.recent-date{font-size:11px;color:var(--muted2);margin-top:1px;}
+.recent-pct{font-size:12px;font-weight:700;color:var(--accent3);}
+
+/* TRAIN */
+.train-header{background:var(--surface);border-bottom:1px solid var(--border);padding:14px 16px 12px;position:sticky;top:0;z-index:100;}
+.train-header-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;}
+.train-day-title{font-family:'Bebas Neue',sans-serif;font-size:26px;letter-spacing:2px;color:var(--accent);}
+.train-day-sub{font-size:11px;color:var(--muted2);margin-top:-3px;}
+.prog-bar{height:3px;background:var(--border);border-radius:2px;overflow:hidden;}
+.prog-bar-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));border-radius:2px;transition:width 0.4s ease;}
+.train-actions{display:flex;gap:5px;margin-top:9px;}
+.tact-btn{flex:1;padding:7px 3px;border-radius:8px;border:1px solid var(--border);background:var(--surface2);color:var(--muted2);font-size:10px;font-weight:600;}
+.tact-btn.danger{border-color:#3a1010;color:var(--red);}
+
+.train-tabs{display:flex;gap:5px;padding:10px 16px 0;overflow-x:auto;scrollbar-width:none;}
+.train-tabs::-webkit-scrollbar{display:none;}
+.ttab{flex-shrink:0;padding:5px 14px;border-radius:20px;font-size:12px;font-weight:700;letter-spacing:1px;border:1.5px solid var(--border);background:transparent;color:var(--muted2);transition:all 0.2s;}
+.ttab.cur{background:var(--surface2);border-color:var(--muted2);color:var(--text);}
+.ttab.nxt{background:var(--accent);border-color:var(--accent);color:#000;}
+.ttab.dne{border-color:var(--done-border);color:var(--accent3);}
+
+.locked-notice{margin:10px 16px 0;background:#1a0800;border:1px solid #5a2200;border-radius:10px;padding:9px 13px;font-size:12px;color:var(--orange);display:none;}
+.locked-notice.show{display:block;}
+
+/* Knee warning badge */
+.knee-badge{display:inline-block;font-size:9px;font-weight:700;padding:2px 6px;border-radius:4px;background:#1a1030;color:#b97fff;border:1px solid #4a2d80;margin-left:4px;vertical-align:middle;}
+
+.exercise-list{padding:10px 16px;display:flex;flex-direction:column;gap:8px;}
+.ex-card{background:var(--surface);border:1.5px solid var(--border);border-radius:13px;overflow:hidden;transition:border-color 0.25s;}
+.ex-card.done{border-color:var(--done-border);background:var(--done-bg);}
+.ex-card-top{display:flex;align-items:center;gap:11px;padding:13px 13px 9px;cursor:pointer;}
+.ex-check{width:28px;height:28px;border-radius:50%;border:2px solid var(--border);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:14px;transition:all 0.25s;}
+.ex-card.done .ex-check{background:var(--accent);border-color:var(--accent);color:#000;}
+.ex-info{flex:1;min-width:0;}
+.ex-name{font-size:13px;font-weight:600;line-height:1.3;transition:color 0.2s;}
+.ex-card.done .ex-name{color:var(--accent);}
+.ex-meta{font-size:11px;color:var(--muted2);margin-top:2px;}
+.ex-tags{display:flex;gap:4px;flex-wrap:wrap;margin-top:4px;}
+.ex-tag{display:inline-block;font-size:9px;font-weight:700;letter-spacing:0.8px;padding:2px 6px;border-radius:4px;text-transform:uppercase;cursor:pointer;}
+.tag-restpause{background:#1a1040;color:#a78bfa;}
+.tag-dropset{background:#1a0820;color:#f472b6;}
+.tag-biset{background:#0d1a20;color:#7ee8fa;}
+.tag-progressivo{background:#1a1000;color:#fbbf24;}
+.tag-falha{background:#1a0000;color:#f87171;}
+.tag-normal{background:#151515;color:#666;}
+.tag-unilateral{background:#1a1030;color:#b97fff;}
+.tech-tooltip{margin:0 13px 9px;background:var(--surface2);border:1px solid var(--border);border-radius:9px;padding:9px 11px;display:none;font-size:12px;color:var(--muted2);line-height:1.5;}
+.tech-tooltip.show{display:block;}
+.tech-tooltip strong{color:var(--text);display:block;margin-bottom:3px;}
+.knee-tip{margin:0 13px 9px;background:#130d22;border:1px solid #4a2d80;border-radius:9px;padding:8px 11px;font-size:11px;color:#b97fff;line-height:1.5;display:none;}
+.knee-tip.show{display:block;}
+.yt-btn{width:100%;padding:7px;background:transparent;border:none;border-top:1px solid var(--border);color:#f44;font-size:11px;font-weight:700;letter-spacing:0.5px;display:flex;align-items:center;justify-content:center;gap:5px;}
+.ex-card-bottom{padding:0 13px 11px;display:none;flex-direction:column;gap:7px;}
+.ex-card.expanded .ex-card-bottom{display:flex;}
+
+/* Lado comparison */
+.side-inputs{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.side-label{font-size:10px;color:var(--muted2);text-align:center;margin-bottom:3px;font-weight:600;}
+.side-diff{text-align:center;font-size:10px;padding:4px;border-radius:6px;background:var(--surface3);}
+.side-diff.equal{color:var(--accent3);}
+.side-diff.gap{color:var(--orange);}
+
+.weight-row{display:flex;align-items:center;gap:8px;}
+.weight-label{font-size:12px;color:var(--muted2);white-space:nowrap;}
+.weight-input{flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px 10px;color:var(--text);font-size:16px;font-weight:600;outline:none;transition:border-color 0.2s;}
+.weight-input:focus{border-color:var(--accent);}
+.weight-unit{font-size:12px;color:var(--muted2);}
+.rest-btn{width:100%;padding:8px;border-radius:8px;border:1px solid var(--border);background:var(--surface2);color:var(--muted2);font-size:12px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:5px;}
+.ex-expand-btn{width:100%;padding:5px;background:transparent;border:none;border-top:1px solid var(--border);color:var(--muted);font-size:10px;letter-spacing:1px;text-transform:uppercase;font-weight:600;}
+.finish-bar{position:fixed;bottom:64px;left:0;right:0;padding:8px 16px;background:var(--bg);border-top:1px solid var(--border);}
+.finish-bar-btn{width:100%;padding:14px;border-radius:13px;background:var(--accent);color:#000;border:none;font-size:14px;font-weight:700;letter-spacing:1px;text-transform:uppercase;transition:transform 0.15s;}
+.finish-bar-btn:active{transform:scale(0.97);}
+.finish-bar-btn:disabled{opacity:0.25;}
+
+/* TIMER */
+.timer-overlay{position:fixed;inset:0;z-index:500;background:rgba(0,0,0,0.93);display:none;flex-direction:column;align-items:center;justify-content:center;gap:18px;}
+.timer-overlay.show{display:flex;}
+.timer-lbl{font-size:12px;color:var(--muted2);letter-spacing:2px;text-transform:uppercase;}
+.timer-num{font-family:'Bebas Neue',sans-serif;font-size:90px;color:var(--accent);letter-spacing:4px;line-height:1;}
+.timer-prog{width:180px;height:4px;background:var(--border);border-radius:2px;overflow:hidden;}
+.timer-prog-fill{height:100%;background:var(--accent);border-radius:2px;transition:width 1s linear;}
+.timer-presets{display:flex;gap:8px;}
+.timer-preset{padding:6px 14px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--muted2);font-size:12px;font-weight:600;}
+.timer-preset.active{border-color:var(--accent);color:var(--accent);}
+.timer-btns{display:flex;gap:10px;}
+.timer-btn{padding:11px 24px;border-radius:11px;border:1.5px solid var(--border);background:var(--surface);color:var(--text);font-size:13px;font-weight:700;}
+.timer-btn.primary{background:var(--accent);border-color:var(--accent);color:#000;}
+
+/* CALENDAR */
+.cal-body{padding:16px;}
+.cal-month-nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+.cal-month-title{font-family:'Bebas Neue',sans-serif;font-size:24px;color:var(--text);letter-spacing:1px;}
+.cal-nav-btn{background:transparent;border:1px solid var(--border);border-radius:8px;color:var(--muted2);font-size:18px;padding:4px 12px;}
+.cal-edit-btn{background:transparent;border:1px solid var(--border);border-radius:8px;color:var(--muted2);font-size:11px;font-weight:700;padding:5px 12px;letter-spacing:0.5px;transition:all 0.2s;}
+.cal-edit-btn.active{border-color:var(--orange);color:var(--orange);background:#1a0800;}
+.cal-grid-header{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-bottom:4px;}
+.cal-day-header{text-align:center;font-size:10px;font-weight:700;color:var(--muted2);letter-spacing:0.5px;padding:4px 0;}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;}
+.cal-cell{aspect-ratio:1;border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:12px;font-weight:600;color:var(--muted2);background:var(--surface);border:1px solid transparent;position:relative;transition:all 0.2s;}
+.cal-cell.today{border-color:var(--accent);color:var(--accent);}
+.cal-cell.has-train{color:var(--text);}
+.cal-cell.editable{cursor:pointer;}
+.cal-cell.editable:active{transform:scale(0.95);}
+.cal-cell.edit-mode{border-color:var(--surface3);}
+.cal-dot{display:none;position:absolute;bottom:3px;left:50%;transform:translateX(-50%);width:5px;height:5px;border-radius:50%;background:var(--accent);}
+.cal-cell.has-train .cal-dot{display:block;}
+.cal-train-letter{font-size:9px;font-weight:700;color:var(--accent3);margin-top:1px;}
+.month-summary{margin-top:14px;}
+.month-summary-title{font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted2);margin-bottom:8px;}
+.month-stat-row{display:flex;gap:8px;}
+.month-stat{flex:1;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px;text-align:center;}
+.month-stat-val{font-family:'Bebas Neue',sans-serif;font-size:28px;color:var(--accent);}
+.month-stat-lbl{font-size:10px;color:var(--muted2);text-transform:uppercase;letter-spacing:0.5px;margin-top:2px;}
+.edit-mode-banner{background:#1a0800;border:1px solid #5a2200;border-radius:10px;padding:10px 14px;margin-bottom:12px;font-size:12px;color:var(--orange);text-align:center;display:none;}
+.edit-mode-banner.show{display:block;}
+
+/* HISTORY */
+.history-header-row{display:flex;align-items:center;justify-content:space-between;padding:20px 16px 14px;background:var(--surface);border-bottom:1px solid var(--border);}
+.history-edit-btn{background:transparent;border:1px solid var(--border);border-radius:8px;color:var(--muted2);font-size:11px;font-weight:700;padding:6px 12px;letter-spacing:0.5px;transition:all 0.2s;}
+.history-edit-btn.active{border-color:var(--orange);color:var(--orange);background:#1a0800;}
+.history-list{padding:16px;display:flex;flex-direction:column;gap:10px;}
+.history-item{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:13px 15px;transition:border-color 0.2s;}
+.history-item.editable{border-color:var(--surface3);cursor:pointer;}
+.history-item.editable:active{border-color:var(--orange);}
+.history-item-top{display:flex;align-items:center;justify-content:space-between;}
+.history-item-left{display:flex;align-items:center;gap:11px;}
+.history-badge{width:38px;height:38px;border-radius:9px;background:var(--done-bg);border:1px solid var(--done-border);display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:21px;color:var(--accent);}
+.history-name{font-size:13px;font-weight:700;}
+.history-sub{font-size:11px;color:var(--muted2);margin-top:2px;}
+.history-pct{font-family:'Bebas Neue',sans-serif;font-size:22px;color:var(--accent3);}
+.history-edit-icon{font-size:16px;color:var(--orange);display:none;}
+.history-item.editable .history-edit-icon{display:block;}
+.history-weights{margin-top:9px;padding-top:9px;border-top:1px solid var(--border);display:flex;flex-direction:column;gap:3px;}
+.history-weight-row{display:flex;justify-content:space-between;font-size:11px;}
+.history-weight-name{color:var(--muted2);}
+.history-weight-val{color:var(--text);font-weight:600;}
+
+/* BODY */
+.checkin-btn{display:block;width:calc(100% - 32px);margin:14px 16px 0;background:var(--accent);color:#000;border:none;border-radius:14px;padding:15px;font-size:15px;font-weight:700;letter-spacing:1px;text-transform:uppercase;transition:transform 0.15s;}
+.checkin-btn:active{transform:scale(0.97);}
+.checkin-list{padding:14px 16px;display:flex;flex-direction:column;gap:12px;}
+.checkin-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden;}
+.checkin-card-header{padding:12px 16px 10px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.checkin-date{font-size:12px;color:var(--muted2);}
+.checkin-period{font-size:11px;font-weight:700;color:var(--accent);letter-spacing:1px;text-transform:uppercase;}
+.checkin-body{padding:12px 16px;display:flex;flex-direction:column;gap:7px;}
+.checkin-row{display:flex;justify-content:space-between;align-items:center;}
+.checkin-label{font-size:12px;color:var(--muted2);}
+.checkin-val{font-size:13px;font-weight:700;color:var(--text);}
+.checkin-note{font-size:12px;color:var(--muted2);font-style:italic;margin-top:4px;padding-top:6px;border-top:1px solid var(--border);}
+.photo-reminder{background:var(--surface2);border:1px dashed var(--border);border-radius:8px;padding:8px;text-align:center;font-size:11px;color:var(--muted2);margin-top:4px;}
+
+/* Knee tracker */
+.knee-tracker{margin:0 16px;background:var(--surface);border:1px solid #4a2d80;border-radius:14px;overflow:hidden;}
+.knee-tracker-header{padding:12px 16px;background:#130d22;border-bottom:1px solid #4a2d80;display:flex;align-items:center;gap:8px;}
+.knee-tracker-title{font-size:12px;font-weight:700;color:#b97fff;letter-spacing:1px;text-transform:uppercase;}
+.knee-tracker-body{padding:12px 16px;display:flex;flex-direction:column;gap:8px;}
+.knee-row{display:flex;justify-content:space-between;align-items:center;}
+.knee-label{font-size:12px;color:var(--muted2);}
+.knee-val{font-size:13px;font-weight:700;color:var(--text);}
+.knee-progress{height:6px;background:var(--surface3);border-radius:3px;overflow:hidden;margin-top:4px;}
+.knee-progress-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,#b97fff,#7ee8fa);transition:width 0.5s ease;}
+.knee-tip-box{margin:0 16px;background:#130d22;border:1px solid #4a2d80;border-radius:10px;padding:10px 13px;font-size:11px;color:#b97fff;line-height:1.6;}
+.knee-tip-box strong{color:#d4aaff;display:block;margin-bottom:4px;}
+
+.delta{font-size:11px;font-weight:700;margin-left:5px;}
+.delta.up{color:var(--accent);}
+.delta.dn{color:var(--red);}
+.delta.eq{color:var(--muted2);}
+
+/* TECH */
+.tech-list{padding:16px;display:flex;flex-direction:column;gap:10px;}
+.tech-item{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:15px;}
+.tech-item-header{display:flex;align-items:center;gap:10px;margin-bottom:8px;}
+.tech-item-desc{font-size:13px;color:var(--muted2);line-height:1.6;}
+.tech-item-tip{margin-top:8px;font-size:12px;color:var(--accent);font-weight:600;}
+
+/* MODALS */
+.modal-overlay{position:fixed;inset:0;z-index:400;background:rgba(0,0,0,0.85);display:none;align-items:flex-end;}
+.modal-overlay.show{display:flex;}
+.modal-sheet{background:var(--surface);border-radius:20px 20px 0 0;width:100%;max-height:88vh;overflow-y:auto;padding:20px 20px 40px;}
+.modal-handle{width:40px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 16px;}
+.modal-title{font-family:'Bebas Neue',sans-serif;font-size:24px;color:var(--accent);letter-spacing:1px;margin-bottom:4px;}
+.modal-sub{font-size:12px;color:var(--muted2);margin-bottom:16px;}
+.form-group{margin-bottom:13px;}
+.form-label{font-size:11px;font-weight:700;color:var(--muted2);letter-spacing:0.5px;text-transform:uppercase;margin-bottom:5px;display:block;}
+.form-input{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:11px 13px;color:var(--text);font-size:16px;outline:none;transition:border-color 0.2s;}
+.form-input:focus{border-color:var(--accent);}
+.form-select{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:11px 13px;color:var(--text);font-size:16px;outline:none;appearance:none;}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.feeling-picker{display:flex;gap:8px;}
+.feel-btn{flex:1;padding:10px;border-radius:10px;border:1.5px solid var(--border);background:transparent;color:var(--muted2);font-size:18px;transition:all 0.2s;text-align:center;}
+.feel-btn.active{border-color:var(--accent);background:#1a1030;}
+.modal-save{width:100%;margin-top:16px;padding:15px;border-radius:13px;background:var(--accent);color:#000;border:none;font-size:15px;font-weight:700;letter-spacing:1px;}
+.modal-cancel{width:100%;margin-top:8px;padding:12px;border-radius:13px;background:transparent;border:1px solid var(--border);color:var(--muted2);font-size:14px;font-weight:600;}
+.modal-delete{width:100%;margin-top:8px;padding:12px;border-radius:13px;background:transparent;border:1px solid #3a1010;color:var(--red);font-size:14px;font-weight:600;}
+.ex-checklist{display:flex;flex-direction:column;gap:6px;max-height:200px;overflow-y:auto;}
+.ex-check-item{display:flex;align-items:center;gap:10px;padding:8px;background:var(--surface2);border-radius:8px;}
+.ex-check-item input[type=checkbox]{width:18px;height:18px;accent-color:var(--accent);}
+.ex-check-item label{font-size:12px;color:var(--text);flex:1;}
+
+/* CONGRATS */
+.congrats-overlay{display:none;position:fixed;inset:0;z-index:600;background:rgba(0,0,0,0.93);flex-direction:column;align-items:center;justify-content:center;gap:14px;text-align:center;padding:40px;}
+.congrats-overlay.show{display:flex;}
+.congrats-emoji{font-size:70px;}
+.congrats-title{font-family:'Bebas Neue',sans-serif;font-size:44px;color:var(--accent);letter-spacing:3px;}
+.congrats-sub{font-size:14px;color:var(--muted2);max-width:260px;line-height:1.6;}
+.congrats-close{margin-top:8px;padding:13px 38px;border-radius:13px;background:var(--accent);color:#000;border:none;font-size:14px;font-weight:700;letter-spacing:1px;}
+
+/* Loading */
+.db-loading{position:fixed;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;z-index:9999;}
+.db-loading-icon{font-size:48px;animation:pulse 1.2s ease-in-out infinite;}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.4;}}
+.db-loading-text{font-family:'Bebas Neue',sans-serif;font-size:24px;color:var(--accent);letter-spacing:2px;}
+</style>
+</head>
+<body>
+
+<!-- Loading -->
+<div class="db-loading" id="dbLoading">
+  <div class="db-loading-icon">💪</div>
+  <div class="db-loading-text">IAN FIT</div>
+</div>
+
+<!-- HOME -->
+<div class="screen" id="homeScreen">
+  <div class="home-header">
+    <div class="home-greeting">Bom treino,</div>
+    <div class="home-title">IAN</div>
+    <div class="home-subtitle">3x semana · Foco no equilíbrio muscular</div>
+  </div>
+  <div class="knee-alert">
+    <div style="font-size:16px;flex-shrink:0">🦵</div>
+    <div class="knee-alert-text"><strong>Monitoramento LCA</strong>Compare sempre as cargas: extensora e flexora unilateral são seus indicadores de equilíbrio entre as pernas.</div>
+  </div>
+  <div class="period-alert" id="periodAlert"><div class="period-icon" id="periodIcon"></div><div><div class="period-title" id="periodTitle"></div><div class="period-sub" id="periodSub"></div></div></div>
+  <div class="day-cards" id="dayCards"></div>
+  <button class="start-btn" id="startBtn" onclick="startTrain()">▶ Iniciar treino</button>
+  <div class="section-title">ESTA SEMANA</div>
+  <div class="week-stats" id="weekStats"></div>
+  <div class="section-title">ÚLTIMOS TREINOS</div>
+  <div class="recent-list" id="recentList"></div>
+</div>
+
+<!-- TRAIN -->
+<div class="screen" id="trainScreen">
+  <div class="train-header">
+    <div class="train-header-top">
+      <div><div class="train-day-title" id="trainDayTitle">TREINO A</div><div class="train-day-sub" id="trainDaySub"></div></div>
+      <div style="font-size:12px;color:var(--muted2)" id="trainProgress"></div>
+    </div>
+    <div class="prog-bar"><div class="prog-bar-fill" id="trainProgressBar" style="width:0%"></div></div>
+    <div class="train-actions">
+      <button class="tact-btn" onclick="openTimer(60)">⏱ 60s</button>
+      <button class="tact-btn" onclick="openTimer(90)">⏱ 90s</button>
+      <button class="tact-btn" onclick="openTimer(120)">⏱ 120s</button>
+      <button class="tact-btn danger" onclick="abandonTrain()">✕ Sair</button>
+    </div>
+  </div>
+  <div class="train-tabs" id="trainTabs"></div>
+  <div class="locked-notice" id="lockedNotice"></div>
+  <div class="exercise-list" id="exerciseList"></div>
+  <div style="height:120px"></div>
+  <div class="finish-bar"><button class="finish-bar-btn" id="finishBtn" onclick="finishTrain()" disabled>Finalizar Treino</button></div>
+</div>
+
+<!-- CALENDAR -->
+<div class="screen" id="calendarScreen">
+  <div class="page-header" style="display:flex;align-items:center;justify-content:space-between;padding:20px 16px 14px;">
+    <div><div class="page-title">CALENDÁRIO</div><div class="page-sub">Frequência de treinos</div></div>
+    <button class="cal-edit-btn" id="calEditBtn" onclick="toggleCalEdit()">✏️ Editar</button>
+  </div>
+  <div class="cal-body">
+    <div class="edit-mode-banner" id="calEditBanner">✏️ Modo edição — toque em qualquer dia para adicionar ou remover treino</div>
+    <div class="cal-month-nav">
+      <button class="cal-nav-btn" onclick="calPrev()">‹</button>
+      <div class="cal-month-title" id="calMonthTitle"></div>
+      <button class="cal-nav-btn" onclick="calNext()">›</button>
+    </div>
+    <div class="cal-grid-header" id="calHeader"></div>
+    <div class="cal-grid" id="calGrid"></div>
+    <div class="month-summary">
+      <div class="month-summary-title">Resumo do mês</div>
+      <div class="month-stat-row" id="monthStats"></div>
+    </div>
+  </div>
+</div>
+
+<!-- HISTORY -->
+<div class="screen" id="historyScreen">
+  <div class="history-header-row">
+    <div class="page-title">HISTÓRICO</div>
+    <button class="history-edit-btn" id="histEditBtn" onclick="toggleHistEdit()">✏️ Editar</button>
+  </div>
+  <div class="history-list" id="historyList"></div>
+</div>
+
+<!-- BODY -->
+<div class="screen" id="bodyScreen">
+  <div class="page-header"><div class="page-title">EVOLUÇÃO</div><div class="page-sub">Check-in trimestral + Joelho</div></div>
+  <button class="checkin-btn" onclick="openCheckin()">+ Novo check-in</button>
+  <div style="height:12px"></div>
+  <div class="knee-tip-box">
+    <strong>🦵 Como monitorar o equilíbrio do LCA</strong>
+    Em cada treino A e C, anote a carga da extensora e flexora de cada perna separadamente. O objetivo é fechar a diferença progressivamente. Quando as cargas ficarem iguais, o músculo estará reequilibrado.
+  </div>
+  <div class="checkin-list" id="checkinList"></div>
+</div>
+
+<!-- TECH -->
+<div class="screen" id="techScreen">
+  <div class="page-header"><div class="page-title">TÉCNICAS</div><div class="page-sub">Entenda cada método</div></div>
+  <div class="tech-list">
+    <div class="tech-item"><div class="tech-item-header"><span class="ex-tag tag-progressivo">Progressivo</span></div><div class="tech-item-desc">Aplica em <strong style="color:var(--text)">todas as séries</strong>. Começa mais leve e aumenta o peso a cada série.</div><div class="tech-item-tip">💡 Ex: 40 → 45 → 50 → 55 kg</div></div>
+    <div class="tech-item"><div class="tech-item-header"><span class="ex-tag tag-restpause">Rest-Pause</span></div><div class="tech-item-desc">Séries 1-3 normais. <strong style="color:var(--text)">Só na última:</strong> falha → 15s → 3-4 reps → 15s → 3-4 reps.</div><div class="tech-item-tip">💡 Última série: falha → 15s → 3-4 reps → repete</div></div>
+    <div class="tech-item"><div class="tech-item-header"><span class="ex-tag tag-dropset">Drop Set</span></div><div class="tech-item-desc">Séries 1-3 normais. <strong style="color:var(--text)">Só na última:</strong> falha → reduz 20-30% sem parar → falha → reduz → falha.</div><div class="tech-item-tip">💡 Última: falha 40kg → 28kg → 20kg sem parar</div></div>
+    <div class="tech-item"><div class="tech-item-header"><span class="ex-tag tag-biset">Biset</span></div><div class="tech-item-desc">Aplica em <strong style="color:var(--text)">todas as séries</strong>. Vai direto do primeiro para o segundo exercício sem descanso.</div><div class="tech-item-tip">💡 Tríceps corda → sem parar → Tríceps francês</div></div>
+    <div class="tech-item"><div class="tech-item-header"><span class="ex-tag tag-falha">Falha</span></div><div class="tech-item-desc">Séries 1-3 normais. <strong style="color:var(--text)">Só na última:</strong> até não conseguir mais uma rep com boa técnica.</div><div class="tech-item-tip">💡 Não confunda fadiga com falha muscular real</div></div>
+    <div class="tech-item"><div class="tech-item-header"><span class="ex-tag tag-normal">Normal</span></div><div class="tech-item-desc">Aplica em <strong style="color:var(--text)">todas as séries</strong> com 60-90s de descanso entre elas.</div><div class="tech-item-tip">💡 Qualidade do movimento vale mais que o peso</div></div>
+    <div class="tech-item"><div class="tech-item-header"><span class="ex-tag tag-unilateral">Unilateral 🦵</span></div><div class="tech-item-desc"><strong style="color:var(--text)">Exercícios marcados assim são feitos separados por lado.</strong> Anote o peso de cada perna para monitorar o equilíbrio do LCA.</div><div class="tech-item-tip">💡 Objetivo: igualar as cargas entre esquerdo e direito</div></div>
+  </div>
+</div>
+
+<!-- NAV -->
+<nav class="nav">
+  <button class="nav-btn active" id="nav-home" onclick="showScreen('home')"><span class="nav-icon">🏠</span>Início</button>
+  <button class="nav-btn" id="nav-train" onclick="goToTrain()"><span class="nav-icon">💪</span>Treino</button>
+  <button class="nav-btn" id="nav-calendar" onclick="showScreen('calendar')"><span class="nav-icon">📅</span>Agenda</button>
+  <button class="nav-btn" id="nav-history" onclick="showScreen('history')"><span class="nav-icon">📋</span>Histórico</button>
+  <button class="nav-btn" id="nav-body" onclick="showScreen('body')"><span class="nav-icon">⚖️</span>Corpo</button>
+</nav>
+
+<!-- TIMER -->
+<div class="timer-overlay" id="timerOverlay">
+  <div class="timer-lbl">DESCANSO</div>
+  <div class="timer-num" id="timerDisplay">01:30</div>
+  <div class="timer-prog"><div class="timer-prog-fill" id="timerFill" style="width:100%"></div></div>
+  <div class="timer-presets">
+    <button class="timer-preset" onclick="setTimer(60)">60s</button>
+    <button class="timer-preset active" onclick="setTimer(90)">90s</button>
+    <button class="timer-preset" onclick="setTimer(120)">120s</button>
+  </div>
+  <div class="timer-btns">
+    <button class="timer-btn" onclick="closeTimer()">Fechar</button>
+    <button class="timer-btn primary" onclick="resetTimer()">↺ Reset</button>
+  </div>
+</div>
+
+<!-- CHECK-IN MODAL -->
+<div class="modal-overlay" id="checkinModal">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title">NOVO CHECK-IN</div>
+    <div class="modal-sub" id="checkinModalSub"></div>
+    <div class="form-group"><label class="form-label">Peso atual (kg)</label><input class="form-input" type="number" inputmode="decimal" id="ci_peso" placeholder="ex: 71.0"></div>
+    <div class="form-group"><label class="form-label">Medidas (cm)</label>
+      <div class="form-row">
+        <input class="form-input" type="number" inputmode="decimal" id="ci_peito" placeholder="Peito">
+        <input class="form-input" type="number" inputmode="decimal" id="ci_cintura" placeholder="Cintura">
+        <input class="form-input" type="number" inputmode="decimal" id="ci_quadril" placeholder="Quadril">
+        <input class="form-input" type="number" inputmode="decimal" id="ci_braco" placeholder="Braço">
+      </div>
+    </div>
+    <div class="form-group"><label class="form-label">🦵 Carga extensora (kg)</label>
+      <div class="form-row">
+        <div><div class="side-label">Esquerdo (LCA)</div><input class="form-input" type="number" inputmode="decimal" id="ci_ext_esq" placeholder="kg"></div>
+        <div><div class="side-label">Direito</div><input class="form-input" type="number" inputmode="decimal" id="ci_ext_dir" placeholder="kg"></div>
+      </div>
+    </div>
+    <div class="form-group"><label class="form-label">🦵 Carga flexora (kg)</label>
+      <div class="form-row">
+        <div><div class="side-label">Esquerdo (LCA)</div><input class="form-input" type="number" inputmode="decimal" id="ci_flex_esq" placeholder="kg"></div>
+        <div><div class="side-label">Direito</div><input class="form-input" type="number" inputmode="decimal" id="ci_flex_dir" placeholder="kg"></div>
+      </div>
+    </div>
+    <div class="form-group"><label class="form-label">Energia geral</label>
+      <div class="feeling-picker" id="feelPicker">
+        <button class="feel-btn" data-val="1" onclick="pickFeel(1)">😔</button>
+        <button class="feel-btn" data-val="2" onclick="pickFeel(2)">😐</button>
+        <button class="feel-btn" data-val="3" onclick="pickFeel(3)">🙂</button>
+        <button class="feel-btn" data-val="4" onclick="pickFeel(4)">😄</button>
+        <button class="feel-btn" data-val="5" onclick="pickFeel(5)">🔥</button>
+      </div>
+    </div>
+    <div class="form-group"><label class="form-label">Observações</label><input class="form-input" type="text" id="ci_nota" placeholder="Como está se sentindo?"></div>
+    <div style="background:var(--surface2);border:1px dashed var(--border);border-radius:10px;padding:14px;text-align:center;font-size:11px;color:var(--muted2)"><strong style="color:var(--text);display:block;margin-bottom:4px">📸 Lembrete de foto</strong>Tire uma foto de frente, costas e lateral agora. Salve no seu rolo.</div>
+    <button class="modal-save" onclick="saveCheckin()">Salvar check-in</button>
+    <button class="modal-cancel" onclick="closeCheckin()">Cancelar</button>
+  </div>
+</div>
+
+<!-- EDIT HISTORY MODAL -->
+<div class="modal-overlay" id="editHistModal">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title">EDITAR TREINO</div>
+    <div class="modal-sub" id="editHistSub"></div>
+    <div class="form-group"><label class="form-label">Data e hora</label><input class="form-input" type="datetime-local" id="eh_date"></div>
+    <div class="form-group"><label class="form-label">Treino</label>
+      <select class="form-select" id="eh_day">
+        <option value="0">A — Perna Frontal</option>
+        <option value="1">B — Upper Body</option>
+        <option value="2">C — Perna Posterior</option>
+      </select>
+    </div>
+    <div class="form-group"><label class="form-label">Exercícios concluídos</label><div class="ex-checklist" id="eh_exlist"></div></div>
+    <button class="modal-save" onclick="saveEditHist()">Salvar alterações</button>
+    <button class="modal-delete" onclick="deleteHistItem()">🗑 Excluir este treino</button>
+    <button class="modal-cancel" onclick="closeEditHist()">Cancelar</button>
+  </div>
+</div>
+
+<!-- EDIT CALENDAR MODAL -->
+<div class="modal-overlay" id="editCalModal">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="editCalTitle">DIA 00/00</div>
+    <div class="modal-sub">Selecione o treino realizado neste dia</div>
+    <div style="display:flex;flex-direction:column;gap:8px;margin-top:8px;" id="editCalOptions"></div>
+    <button class="modal-delete" style="margin-top:12px;" id="editCalRemove" onclick="removeCalDay()">🗑 Remover treino deste dia</button>
+    <button class="modal-cancel" onclick="closeEditCal()">Cancelar</button>
+  </div>
+</div>
+
+<!-- CONGRATS -->
+<div class="congrats-overlay" id="congratsOverlay">
+  <div class="congrats-emoji">💪</div>
+  <div class="congrats-title">CONCLUÍDO!</div>
+  <div class="congrats-sub" id="congratsSub"></div>
+  <button class="congrats-close" onclick="closeCongratz()">Fechar</button>
+</div>
+
+<script>
+// ══ TECHNIQUES ══
+const TECH={
+  restpause:{name:'Rest-Pause',tc:'restpause',desc:'Séries 1-3 normais. Só na última: falha → 15s → 3-4 reps → repete 1-2x'},
+  dropset:{name:'Drop Set',tc:'dropset',desc:'Séries 1-3 normais. Só na última: falha → reduz 20-30% sem parar → falha → reduz → falha'},
+  biset:{name:'Biset ↓',tc:'biset',desc:'Todas as séries: vai direto para o próximo exercício sem descanso'},
+  biset2:{name:'Biset',tc:'biset',desc:'Segundo exercício do biset — sem descanso do anterior. Todas as séries.'},
+  progressivo:{name:'Progressivo',tc:'progressivo',desc:'Todas as séries: começa mais leve e aumenta o peso a cada série'},
+  falha:{name:'Falha',tc:'falha',desc:'Séries 1-3 normais. Só na última: até não conseguir mais uma rep com boa técnica'},
+  normal:{name:'Normal',tc:'normal',desc:'Todas as séries com 60-90s de descanso. Foco em técnica e contração'},
+  unilateral:{name:'Unilateral 🦵',tc:'unilateral',desc:'Faça separado por perna. Anote a carga de cada lado para monitorar o equilíbrio do LCA.'},
+};
+
+// ══ TREINO ABC — IAN ══
+const DAYS=[
+  {
+    id:'A',
+    label:'Perna Frontal',
+    exercises:[
+      {name:'Agachamento livre',meta:'4 séries · 8-10 reps',tech:'progressivo',kneeNote:null},
+      {name:'Leg press 45°',meta:'4 séries · 10-12 reps',tech:'normal',kneeNote:null},
+      {name:'Extensora unilateral',meta:'4 séries · 12 reps cada perna',tech:'unilateral',kneeNote:'⚡ Anote a carga separada de cada perna. Este é o exercício principal para monitorar o equilíbrio do LCA.'},
+      {name:'Avanço com halteres (lunge)',meta:'3 séries · 10 reps cada lado',tech:'normal',kneeNote:null},
+      {name:'Panturrilha em pé',meta:'4 séries · 15 reps',tech:'normal',kneeNote:null},
+    ]
+  },
+  {
+    id:'B',
+    label:'Upper Body',
+    exercises:[
+      {name:'Supino reto',meta:'4 séries · 10 reps',tech:'progressivo',kneeNote:null},
+      {name:'Remada curvada',meta:'4 séries · 10 reps',tech:'normal',kneeNote:null},
+      {name:'Desenvolvimento com halteres',meta:'3 séries · 12 reps',tech:'normal',kneeNote:null},
+      {name:'Puxada frontal',meta:'3 séries · 12 reps',tech:'normal',kneeNote:null},
+      {name:'Elevação lateral',meta:'3 séries · 15 reps',tech:'restpause',kneeNote:null},
+      {name:'Rosca direta',meta:'3 séries · 12 reps',tech:'normal',kneeNote:null},
+      {name:'Tríceps corda',meta:'3 séries · 12 reps',tech:'dropset',kneeNote:null},
+    ]
+  },
+  {
+    id:'C',
+    label:'Perna Posterior',
+    exercises:[
+      {name:'Cadeira flexora',meta:'4 séries · 12 reps',tech:'unilateral',kneeNote:'⚡ Faça unilateral — anote a carga de cada perna. Junto com a extensora, este é o indicador principal de equilíbrio do LCA.'},
+      {name:'Mesa flexora unilateral',meta:'4 séries · 12 reps cada perna',tech:'unilateral',kneeNote:'⚡ Compare a carga entre as duas pernas a cada treino.'},
+      {name:'Agachamento sumô com haltere',meta:'3 séries · 15 reps',tech:'normal',kneeNote:null},
+      {name:'Abdução em pé no cabo',meta:'3 séries · 15 reps cada lado',tech:'normal',kneeNote:null},
+      {name:'Panturrilha sentado',meta:'4 séries · 15 reps',tech:'normal',kneeNote:null},
+      {name:'Prancha + variações de core',meta:'3 séries',tech:'normal',kneeNote:null},
+    ]
+  },
+];
+
+// ══ INDEXEDDB ══
+const DB_NAME='IanFit',DB_VER=1;
+let db=null;
+
+function initDB(){
+  return new Promise((res,rej)=>{
+    const req=indexedDB.open(DB_NAME,DB_VER);
+    req.onupgradeneeded=e=>{
+      const d=e.target.result;
+      if(!d.objectStoreNames.contains('state')) d.createObjectStore('state',{keyPath:'key'});
+      if(!d.objectStoreNames.contains('history')) d.createObjectStore('history',{keyPath:'id',autoIncrement:true});
+      if(!d.objectStoreNames.contains('checkins')) d.createObjectStore('checkins',{keyPath:'id',autoIncrement:true});
+      if(!d.objectStoreNames.contains('activeTrain')) d.createObjectStore('activeTrain',{keyPath:'key'});
+    };
+    req.onsuccess=e=>{db=e.target.result;res(db);};
+    req.onerror=e=>rej(e);
+  });
+}
+
+function dbGet(store,key){return new Promise((res,rej)=>{const tx=db.transaction(store,'readonly');const req=tx.objectStore(store).get(key);req.onsuccess=e=>res(e.target.result);req.onerror=e=>rej(e);});}
+function dbPut(store,val){return new Promise((res,rej)=>{const tx=db.transaction(store,'readwrite');const req=tx.objectStore(store).put(val);req.onsuccess=e=>res(e.target.result);req.onerror=e=>rej(e);});}
+function dbDelete(store,key){return new Promise((res,rej)=>{const tx=db.transaction(store,'readwrite');const req=tx.objectStore(store).delete(key);req.onsuccess=e=>res(e.target.result);req.onerror=e=>rej(e);});}
+function dbGetAll(store){return new Promise((res,rej)=>{const tx=db.transaction(store,'readonly');const req=tx.objectStore(store).getAll();req.onsuccess=e=>res(e.target.result);req.onerror=e=>rej(e);});}
+
+async function getState(){const s=await dbGet('state','main');return s?s.data:{nextDayIdx:0,viewingDayIdx:0,debt:[]};}
+async function setState(data){await dbPut('state',{key:'main',data});}
+async function getActiveTrain(){const s=await dbGet('activeTrain','current');return s?s.data:null;}
+async function setActiveTrain(data){if(data===null)await dbDelete('activeTrain','current');else await dbPut('activeTrain',{key:'current',data});}
+
+// ══ UTILS ══
+function fmtDate(iso){const d=new Date(iso);return d.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'2-digit'})+' '+d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});}
+function fmtDateShort(iso){const d=new Date(iso);return d.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric'});}
+function toDatetimeLocal(iso){const d=new Date(iso);d.setMinutes(d.getMinutes()-d.getTimezoneOffset());return d.toISOString().slice(0,16);}
+function isThisWeek(iso){const now=new Date(),ws=new Date(now);ws.setDate(now.getDate()-now.getDay());ws.setHours(0,0,0,0);return new Date(iso)>=ws;}
+function calcStreak(hist){if(!hist.length)return 0;const sorted=[...hist].sort((a,b)=>new Date(b.completedAt)-new Date(a.completedAt));let s=1;for(let i=1;i<sorted.length;i++){const diff=(new Date(sorted[i-1].completedAt)-new Date(sorted[i].completedAt))/86400000;if(diff<=2)s++;else break;}return s;}
+function calcNextDayIdx(hist){if(!hist.length)return 0;const last=hist.sort((a,b)=>new Date(a.completedAt)-new Date(b.completedAt));return(last[last.length-1].dayIdx+1)%DAYS.length;}
+
+// ══ NAVIGATION ══
+async function showScreen(name){
+  document.querySelectorAll('.screen').forEach(el=>el.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(el=>el.classList.remove('active'));
+  document.getElementById(name+'Screen').classList.add('active');
+  document.getElementById('nav-'+name).classList.add('active');
+  if(name==='home')await renderHome();
+  else if(name==='train')await renderTrain();
+  else if(name==='calendar'){calEditMode=false;updateCalEditUI();await renderCalendar();}
+  else if(name==='history'){histEditMode=false;updateHistEditUI();await renderHistory();}
+  else if(name==='body')await renderBody();
+}
+async function goToTrain(){const at=await getActiveTrain();if(!at){const s=await getState();s.viewingDayIdx=s.nextDayIdx;await setState(s);}await showScreen('train');}
+
+// ══ HOME ══
+async function renderHome(){
+  const [hist,state,at]=await Promise.all([dbGetAll('history'),getState(),getActiveTrain()]);
+  const nextIdx=calcNextDayIdx(hist);
+  if(state.nextDayIdx!==nextIdx){state.nextDayIdx=nextIdx;await setState(state);}
+
+  const alert=document.getElementById('periodAlert');
+  if(hist.length){
+    const first=new Date(hist.sort((a,b)=>new Date(a.completedAt)-new Date(b.completedAt))[0].completedAt);
+    const weeks=Math.floor((new Date()-first)/(7*86400000));
+    if(weeks>=12){alert.className='period-alert danger show';document.getElementById('periodIcon').textContent='🔴';document.getElementById('periodTitle').textContent='Hora de renovar o treino completo!';document.getElementById('periodSub').textContent=`${weeks} semanas de programa. Vamos montar um novo ciclo!`;}
+    else if(weeks>=8){alert.className='period-alert warn show';document.getElementById('periodIcon').textContent='🟡';document.getElementById('periodTitle').textContent='Considere trocar alguns exercícios';document.getElementById('periodSub').textContent=`${weeks} semanas — boa hora para substituir 2-3 exercícios por grupo.`;}
+    else{alert.classList.remove('show');}
+  }
+
+  document.getElementById('dayCards').innerHTML=DAYS.map((d,i)=>{
+    const isNext=i===nextIdx;
+    const isActiveDay=at&&at.dayIdx===i;
+    const isDone=!isActiveDay&&hist.some(h=>h.dayIdx===i&&isThisWeek(h.completedAt));
+    const isDebt=state.debt&&state.debt.some(db=>db.dayIdx===i);
+    let cls='day-card',badge='';
+    if(isNext){cls+=' next';badge=`<span class="day-card-badge badge-next">${isActiveDay?'EM ANDAMENTO':'PRÓXIMO'}</span>`;}
+    else if(isDebt){badge=`<span class="day-card-badge badge-debt">DÉBITO</span>`;}
+    else if(isDone){cls+=' done-card';badge=`<span class="day-card-badge badge-done">✓ FEITO</span>`;}
+    else{cls+=' locked';badge=`<span class="day-card-badge badge-locked">🔒</span>`;}
+    return `<div class="${cls}" onclick="viewDayFromHome(${i})">${badge}<div class="day-card-letter">${d.id}</div><div class="day-card-name">${d.label}</div><div class="day-card-count">${d.exercises.length} exercícios</div></div>`;
+  }).join('');
+
+  document.getElementById('startBtn').textContent=at?`▶ Retomar treino ${DAYS[at.dayIdx].id}`:`▶ Iniciar Treino ${DAYS[nextIdx].id}`;
+
+  const ws=new Date();ws.setDate(ws.getDate()-ws.getDay());ws.setHours(0,0,0,0);
+  const wh=hist.filter(h=>new Date(h.completedAt)>=ws);
+  const wd=wh.length,wp=wd>0?Math.round(wh.reduce((a,h)=>a+h.checked.filter(Boolean).length/h.checked.length*100,0)/wd):0;
+  document.getElementById('weekStats').innerHTML=`
+    <div class="stat-box"><div class="stat-value">${wd}</div><div class="stat-label">Na semana</div></div>
+    <div class="stat-box"><div class="stat-value">${wp}%</div><div class="stat-label">Conclusão</div></div>
+    <div class="stat-box"><div class="stat-value">${calcStreak(hist)}</div><div class="stat-label">Sequência</div></div>`;
+
+  const rec=[...hist].sort((a,b)=>new Date(b.completedAt)-new Date(a.completedAt)).slice(0,5);
+  const rel=document.getElementById('recentList');
+  if(!rec.length){rel.innerHTML='<div style="padding:20px;text-align:center;color:var(--muted2);font-size:13px">Nenhum treino ainda. Bora! 💪</div>';return;}
+  rel.innerHTML=rec.map(h=>{
+    const day=DAYS[h.dayIdx];
+    const pct=Math.round(h.checked.filter(Boolean).length/h.checked.length*100);
+    return `<div class="recent-item"><div class="recent-left"><div class="recent-badge">${day.id}</div><div><div class="recent-name">${day.label}</div><div class="recent-date">${fmtDate(h.completedAt)}</div></div></div><div class="recent-pct">${pct}%</div></div>`;
+  }).join('');
+}
+
+async function viewDayFromHome(i){const s=await getState();s.viewingDayIdx=i;await setState(s);await showScreen('train');}
+
+async function startTrain(){
+  let at=await getActiveTrain();
+  if(!at){
+    const s=await getState();
+    const dayIdx=s.nextDayIdx,day=DAYS[dayIdx];
+    at={dayIdx,checked:day.exercises.map(()=>false),weights:day.exercises.map(()=>''),expanded:day.exercises.map(()=>false),techVisible:day.exercises.map(()=>false),kneeVisible:day.exercises.map(()=>false),startedAt:new Date().toISOString()};
+    await setActiveTrain(at);
+    s.viewingDayIdx=dayIdx;await setState(s);
+  }
+  await showScreen('train');
+}
+
+// ══ TRAIN ══
+async function renderTrain(){
+  const [state,at,hist]=await Promise.all([getState(),getActiveTrain(),dbGetAll('history')]);
+  const vi=state.viewingDayIdx!==undefined?state.viewingDayIdx:state.nextDayIdx;
+  const vd=DAYS[vi];
+  const nextIdx=calcNextDayIdx(hist);
+  const isActive=at&&at.dayIdx===vi;
+  const isNext=vi===nextIdx;
+  const isViewOnly=!isActive&&!isNext;
+
+  document.getElementById('trainDayTitle').textContent=`TREINO ${vd.id}`;
+  document.getElementById('trainDaySub').textContent=vd.label;
+
+  document.getElementById('trainTabs').innerHTML=DAYS.map((d,i)=>{
+    const isNT=i===nextIdx,isDT=hist.some(h=>h.dayIdx===i&&isThisWeek(h.completedAt)),isVT=i===vi;
+    let cls='ttab';
+    if(isNT)cls+=' nxt';else if(isDT)cls+=' dne';
+    if(isVT)cls+=' cur';
+    return `<button class="${cls}" onclick="switchViewDay(${i})">${d.id}</button>`;
+  }).join('');
+
+  const ln=document.getElementById('lockedNotice');
+  if(isViewOnly){ln.textContent=`🔒 Modo consulta — complete o Treino ${DAYS[nextIdx].id} para desbloquear.`;ln.classList.add('show');}
+  else{ln.classList.remove('show');}
+
+  const checked=isActive?at.checked:vd.exercises.map(()=>false);
+  const weights=isActive?at.weights:vd.exercises.map(()=>'');
+  const expanded=isActive?at.expanded:vd.exercises.map(()=>false);
+  const techVisible=isActive?at.techVisible:vd.exercises.map(()=>false);
+  const kneeVisible=isActive?(at.kneeVisible||vd.exercises.map(()=>false)):vd.exercises.map(()=>false);
+  const done=checked.filter(Boolean).length,total=vd.exercises.length;
+
+  document.getElementById('trainProgress').textContent=isActive?`${done}/${total}`:`${total} ex.`;
+  document.getElementById('trainProgressBar').style.width=isActive?(done/total*100)+'%':'0%';
+  document.getElementById('finishBtn').disabled=!(isActive&&done===total);
+
+  document.getElementById('exerciseList').innerHTML=vd.exercises.map((ex,i)=>{
+    const t=TECH[ex.tech];
+    const hasKnee=!!ex.kneeNote;
+    return `<div class="ex-card ${checked[i]?'done':''} ${expanded[i]?'expanded':''}" id="ec${i}">
+      <div class="ex-card-top" onclick="${isActive?`toggleCheck(${i})`:``}">
+        <div class="ex-check">${checked[i]?'✓':''}</div>
+        <div class="ex-info">
+          <div class="ex-name">${ex.name}${hasKnee?'<span class="knee-badge">🦵 LCA</span>':''}</div>
+          <div class="ex-meta">${ex.meta}</div>
+          <div class="ex-tags">
+            <span class="ex-tag tag-${t.tc}" onclick="event.stopPropagation();toggleTech(${i})">${t.name} ℹ</span>
+            ${hasKnee?`<span class="ex-tag tag-unilateral" onclick="event.stopPropagation();toggleKnee(${i})">👁 Dica joelho</span>`:''}
+          </div>
+        </div>
+      </div>
+      <div class="tech-tooltip ${techVisible[i]?'show':''}" id="tt${i}"><strong>${t.name}</strong>${t.desc}</div>
+      ${hasKnee?`<div class="knee-tip ${kneeVisible[i]?'show':''}" id="kt${i}">${ex.kneeNote}</div>`:''}
+      <button class="yt-btn" onclick="openYT('${ex.name}')">▶ Ver no YouTube</button>
+      ${isActive?`
+      <div class="ex-card-bottom">
+        <div class="weight-row">
+          <span class="weight-label">Peso:</span>
+          <input class="weight-input" type="number" inputmode="decimal" placeholder="kg" value="${weights[i]}" onchange="setWeight(${i},this.value)">
+          <span class="weight-unit">kg</span>
+        </div>
+        <button class="rest-btn" onclick="openTimer(90)">⏱ Descanso 90s</button>
+      </div>
+      <button class="ex-expand-btn" onclick="toggleExp(${i})">${expanded[i]?'▲ Fechar':'▼ Peso & Descanso'}</button>
+      `:``}
+    </div>`;
+  }).join('');
+}
+
+async function switchViewDay(i){const s=await getState();s.viewingDayIdx=i;await setState(s);await renderTrain();}
+async function toggleCheck(i){let at=await getActiveTrain();if(!at)return;at.checked[i]=!at.checked[i];if(at.checked[i])at.expanded[i]=false;await setActiveTrain(at);await renderTrain();}
+async function toggleExp(i){let at=await getActiveTrain();if(!at)return;at.expanded[i]=!at.expanded[i];await setActiveTrain(at);await renderTrain();}
+async function toggleTech(i){
+  let at=await getActiveTrain();const s=await getState();
+  if(at&&at.dayIdx===s.viewingDayIdx){at.techVisible[i]=!at.techVisible[i];await setActiveTrain(at);}
+  const tt=document.getElementById('tt'+i);if(tt)tt.classList.toggle('show');
+}
+async function toggleKnee(i){
+  let at=await getActiveTrain();const s=await getState();
+  if(at&&at.dayIdx===s.viewingDayIdx){if(!at.kneeVisible)at.kneeVisible=DAYS[at.dayIdx].exercises.map(()=>false);at.kneeVisible[i]=!at.kneeVisible[i];await setActiveTrain(at);}
+  const kt=document.getElementById('kt'+i);if(kt)kt.classList.toggle('show');
+}
+async function setWeight(i,v){let at=await getActiveTrain();if(!at)return;at.weights[i]=v;await setActiveTrain(at);}
+function openYT(name){window.open('https://www.youtube.com/results?search_query='+encodeURIComponent(name+' como fazer academia'),'_blank');}
+
+async function finishTrain(){
+  const at=await getActiveTrain();if(!at)return;
+  const day=DAYS[at.dayIdx];
+  const newEntry={dayIdx:at.dayIdx,completedAt:new Date().toISOString(),checked:at.checked,weights:at.weights};
+  await dbPut('history',newEntry);
+  const hist=await dbGetAll('history');
+  const nextIdx=calcNextDayIdx(hist);
+  const s=await getState();
+  s.nextDayIdx=nextIdx;s.viewingDayIdx=nextIdx;
+  if(s.debt)s.debt=s.debt.filter(d=>d.dayIdx!==at.dayIdx);
+  await setState(s);await setActiveTrain(null);
+  document.getElementById('congratsSub').textContent=`Treino ${day.id} — ${at.checked.filter(Boolean).length}/${at.checked.length} exercícios. Próximo: Treino ${DAYS[nextIdx].id}!`;
+  document.getElementById('congratsOverlay').classList.add('show');
+}
+async function abandonTrain(){
+  if(!confirm('Sair do treino? Ficará como débito.'))return;
+  const at=await getActiveTrain();
+  if(at){const s=await getState();if(!s.debt)s.debt=[];s.debt.push({dayIdx:at.dayIdx,missedDate:new Date().toISOString()});await setState(s);}
+  await setActiveTrain(null);await showScreen('home');
+}
+function closeCongratz(){document.getElementById('congratsOverlay').classList.remove('show');showScreen('home');}
+
+// ══ TIMER ══
+let tInt=null,tTotal=90,tLeft=90;
+function openTimer(s){setTimer(s);document.getElementById('timerOverlay').classList.add('show');}
+function closeTimer(){document.getElementById('timerOverlay').classList.remove('show');clearInterval(tInt);}
+function setTimer(s){clearInterval(tInt);tTotal=s;tLeft=s;document.querySelectorAll('.timer-preset').forEach(b=>b.classList.toggle('active',parseInt(b.textContent)===s));updateTimerUI();startTimerTick();}
+function resetTimer(){setTimer(tTotal);}
+function startTimerTick(){clearInterval(tInt);tInt=setInterval(()=>{tLeft--;updateTimerUI();if(tLeft<=0){clearInterval(tInt);try{navigator.vibrate&&navigator.vibrate([300,100,300]);}catch(e){}}},1000);}
+function updateTimerUI(){const abs=Math.abs(tLeft),m=Math.floor(abs/60),s=abs%60;document.getElementById('timerDisplay').textContent=(tLeft<0?'-':'')+String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');document.getElementById('timerFill').style.width=Math.max(0,tLeft/tTotal*100)+'%';}
+
+// ══ CALENDAR ══
+let calYear=new Date().getFullYear(),calMonth=new Date().getMonth(),calEditMode=false,calEditDate=null;
+const MONTHS=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+const WDAYS=['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+
+function toggleCalEdit(){calEditMode=!calEditMode;updateCalEditUI();renderCalendar();}
+function updateCalEditUI(){const btn=document.getElementById('calEditBtn');const banner=document.getElementById('calEditBanner');if(calEditMode){btn.textContent='✓ Concluir';btn.classList.add('active');banner.classList.add('show');}else{btn.textContent='✏️ Editar';btn.classList.remove('active');banner.classList.remove('show');}}
+function calPrev(){calMonth--;if(calMonth<0){calMonth=11;calYear--;}renderCalendar();}
+function calNext(){calMonth++;if(calMonth>11){calMonth=0;calYear++;}renderCalendar();}
+
+async function renderCalendar(){
+  const hist=await dbGetAll('history');
+  document.getElementById('calMonthTitle').textContent=`${MONTHS[calMonth]} ${calYear}`;
+  document.getElementById('calHeader').innerHTML=WDAYS.map(d=>`<div class="cal-day-header">${d}</div>`).join('');
+  const firstDay=new Date(calYear,calMonth,1).getDay();
+  const daysInMonth=new Date(calYear,calMonth+1,0).getDate();
+  const today=new Date();
+  const trainMap={};
+  hist.forEach(h=>{const d=new Date(h.completedAt);if(d.getFullYear()===calYear&&d.getMonth()===calMonth){const key=d.getDate();if(!trainMap[key])trainMap[key]=[];trainMap[key].push({dayIdx:h.dayIdx,id:h.id});}});
+  let cells='';
+  for(let i=0;i<firstDay;i++)cells+=`<div class="cal-cell"></div>`;
+  for(let d=1;d<=daysInMonth;d++){
+    const isToday=d===today.getDate()&&calMonth===today.getMonth()&&calYear===today.getFullYear();
+    const trains=trainMap[d]||[];
+    const hasTrain=trains.length>0;
+    const letters=trains.map(t=>DAYS[t.dayIdx].id).join('/');
+    const editAttr=calEditMode?`onclick="openEditCal(${d})"`:``; 
+    cells+=`<div class="cal-cell ${isToday?'today':''} ${hasTrain?'has-train':''} ${calEditMode?'editable edit-mode':''}" ${editAttr}>${d}${hasTrain?`<div class="cal-train-letter">${letters}</div>`:''}
+      <div class="cal-dot"></div></div>`;
+  }
+  document.getElementById('calGrid').innerHTML=cells;
+  const monthTotal=Object.values(trainMap).flat().length;
+  const daysWithTrain=Object.keys(trainMap).length;
+  document.getElementById('monthStats').innerHTML=`
+    <div class="month-stat"><div class="month-stat-val">${daysWithTrain}</div><div class="month-stat-lbl">Dias treinados</div></div>
+    <div class="month-stat"><div class="month-stat-val">${monthTotal}</div><div class="month-stat-lbl">Treinos totais</div></div>
+    <div class="month-stat"><div class="month-stat-val">${daysInMonth-daysWithTrain}</div><div class="month-stat-lbl">Dias descanso</div></div>`;
+}
+
+async function openEditCal(day){
+  calEditDate=day;
+  const hist=await dbGetAll('history');
+  const trains=hist.filter(h=>{const d=new Date(h.completedAt);return d.getFullYear()===calYear&&d.getMonth()===calMonth&&d.getDate()===day;});
+  document.getElementById('editCalTitle').textContent=`DIA ${String(day).padStart(2,'0')}/${String(calMonth+1).padStart(2,'0')}`;
+  document.getElementById('editCalOptions').innerHTML=DAYS.map((d,i)=>`
+    <button onclick="addCalDay(${i})" style="padding:13px;border-radius:10px;border:1.5px solid var(--border);background:var(--surface2);color:var(--text);font-size:14px;font-weight:600;text-align:left;display:flex;align-items:center;gap:10px;">
+      <span style="font-family:'Bebas Neue',sans-serif;font-size:22px;color:var(--accent)">${d.id}</span>
+      <span>${d.label}</span>
+    </button>`).join('');
+  const removeBtn=document.getElementById('editCalRemove');
+  removeBtn.style.display=trains.length?'block':'none';
+  document.getElementById('editCalModal').classList.add('show');
+}
+async function addCalDay(dayIdx){
+  const date=new Date(calYear,calMonth,calEditDate,10,0,0);
+  const day=DAYS[dayIdx];
+  await dbPut('history',{dayIdx,completedAt:date.toISOString(),checked:Array(day.exercises.length).fill(true),weights:Array(day.exercises.length).fill('')});
+  closeEditCal();await renderCalendar();
+}
+async function removeCalDay(){
+  const hist=await dbGetAll('history');
+  const toRemove=hist.filter(h=>{const d=new Date(h.completedAt);return d.getFullYear()===calYear&&d.getMonth()===calMonth&&d.getDate()===calEditDate;});
+  for(const h of toRemove)await dbDelete('history',h.id);
+  closeEditCal();await renderCalendar();
+}
+function closeEditCal(){document.getElementById('editCalModal').classList.remove('show');}
+
+// ══ HISTORY ══
+let histEditMode=false,editingHistId=null;
+function toggleHistEdit(){histEditMode=!histEditMode;updateHistEditUI();renderHistory();}
+function updateHistEditUI(){const btn=document.getElementById('histEditBtn');if(histEditMode){btn.textContent='✓ Concluir';btn.classList.add('active');}else{btn.textContent='✏️ Editar';btn.classList.remove('active');}}
+async function renderHistory(){
+  const hist=await dbGetAll('history');
+  const sorted=[...hist].sort((a,b)=>new Date(b.completedAt)-new Date(a.completedAt));
+  const el=document.getElementById('historyList');
+  if(!sorted.length){el.innerHTML='<div style="padding:40px;text-align:center;color:var(--muted2);font-size:13px">Nenhum treino ainda.</div>';return;}
+  el.innerHTML=sorted.map(h=>{
+    const day=DAYS[h.dayIdx];
+    const pct=Math.round(h.checked.filter(Boolean).length/h.checked.length*100);
+    const rows=day.exercises.map((ex,i)=>h.weights[i]?`<div class="history-weight-row"><span class="history-weight-name">${ex.name}</span><span class="history-weight-val">${h.weights[i]} kg</span></div>`:'').filter(Boolean).join('');
+    return `<div class="history-item ${histEditMode?'editable':''}" onclick="${histEditMode?`openEditHist(${h.id})`:''}">
+      <div class="history-item-top">
+        <div class="history-item-left">
+          <div class="history-badge">${day.id}</div>
+          <div><div class="history-name">${day.label}</div><div class="history-sub">${fmtDate(h.completedAt)} · ${h.checked.filter(Boolean).length}/${h.checked.length} ex.</div></div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;"><div class="history-pct">${pct}%</div><div class="history-edit-icon">✏️</div></div>
+      </div>
+      ${rows?`<div class="history-weights">${rows}</div>`:''}
+    </div>`;
+  }).join('');
+}
+async function openEditHist(id){
+  editingHistId=id;
+  const hist=await dbGetAll('history');
+  const h=hist.find(x=>x.id===id);if(!h)return;
+  const day=DAYS[h.dayIdx];
+  document.getElementById('editHistSub').textContent=`${day.label} — ${fmtDate(h.completedAt)}`;
+  document.getElementById('eh_date').value=toDatetimeLocal(h.completedAt);
+  document.getElementById('eh_day').value=h.dayIdx;
+  document.getElementById('eh_exlist').innerHTML=day.exercises.map((ex,i)=>`
+    <div class="ex-check-item"><input type="checkbox" id="ehex${i}" ${h.checked[i]?'checked':''}><label for="ehex${i}">${ex.name}</label></div>`).join('');
+  document.getElementById('editHistModal').classList.add('show');
+}
+async function saveEditHist(){
+  const hist=await dbGetAll('history');
+  const h=hist.find(x=>x.id===editingHistId);if(!h)return;
+  const newDayIdx=parseInt(document.getElementById('eh_day').value);
+  const newDay=DAYS[newDayIdx];
+  const dateVal=document.getElementById('eh_date').value;
+  const checked=Array.from(document.querySelectorAll('#eh_exlist input[type=checkbox]')).map(cb=>cb.checked);
+  h.completedAt=new Date(dateVal).toISOString();h.dayIdx=newDayIdx;
+  h.checked=checked.slice(0,newDay.exercises.length);
+  while(h.checked.length<newDay.exercises.length)h.checked.push(false);
+  h.weights=Array(newDay.exercises.length).fill('');
+  await dbPut('history',h);closeEditHist();await renderHistory();
+}
+async function deleteHistItem(){if(!confirm('Excluir este treino do histórico?'))return;await dbDelete('history',editingHistId);closeEditHist();await renderHistory();}
+function closeEditHist(){document.getElementById('editHistModal').classList.remove('show');}
+
+// ══ BODY ══
+let selectedFeel=0;
+const FEEL_EMOJI=['','😔','😐','🙂','😄','🔥'];
+function pickFeel(v){selectedFeel=v;document.querySelectorAll('.feel-btn').forEach(b=>b.classList.toggle('active',parseInt(b.dataset.val)===v));}
+async function openCheckin(){
+  const checkins=await dbGetAll('checkins');
+  selectedFeel=0;
+  ['ci_peso','ci_peito','ci_cintura','ci_quadril','ci_braco','ci_nota','ci_ext_esq','ci_ext_dir','ci_flex_esq','ci_flex_dir'].forEach(id=>document.getElementById(id).value='');
+  document.querySelectorAll('.feel-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('checkinModalSub').textContent=checkins.length===0?'Check-in inicial':`Check-in #${checkins.length+1}`;
+  document.getElementById('checkinModal').classList.add('show');
+}
+function closeCheckin(){document.getElementById('checkinModal').classList.remove('show');}
+async function saveCheckin(){
+  const ci={
+    date:new Date().toISOString(),
+    peso:parseFloat(document.getElementById('ci_peso').value)||null,
+    peito:parseFloat(document.getElementById('ci_peito').value)||null,
+    cintura:parseFloat(document.getElementById('ci_cintura').value)||null,
+    quadril:parseFloat(document.getElementById('ci_quadril').value)||null,
+    braco:parseFloat(document.getElementById('ci_braco').value)||null,
+    ext_esq:parseFloat(document.getElementById('ci_ext_esq').value)||null,
+    ext_dir:parseFloat(document.getElementById('ci_ext_dir').value)||null,
+    flex_esq:parseFloat(document.getElementById('ci_flex_esq').value)||null,
+    flex_dir:parseFloat(document.getElementById('ci_flex_dir').value)||null,
+    feeling:selectedFeel||null,
+    nota:document.getElementById('ci_nota').value||''
+  };
+  await dbPut('checkins',ci);closeCheckin();await renderBody();
+}
+function delta(curr,prev,unit=''){if(curr===null||prev===null)return '';const d=(curr-prev).toFixed(1);const cls=d>0?'up':d<0?'dn':'eq';return `<span class="delta ${cls}">${d>0?'+':''}${d}${unit}</span>`;}
+function kneeDiff(esq,dir){if(!esq||!dir)return '';const pct=Math.round((esq/dir)*100);const diff=Math.abs(dir-esq).toFixed(1);if(pct>=95)return `<div class="side-diff equal">✅ Equilibrado (${pct}%)</div>`;return `<div class="side-diff gap">⚠️ Dif: ${diff}kg (${pct}% do lado direito)</div>`;}
+
+async function renderBody(){
+  const checkins=await dbGetAll('checkins');
+  const el=document.getElementById('checkinList');
+  if(!checkins.length){el.innerHTML=`<div style="padding:40px;text-align:center;color:var(--muted2);font-size:14px;line-height:1.7"><div style="font-size:48px;margin-bottom:12px">⚖️</div>Nenhum check-in ainda.<br>Registre seu ponto de partida!</div>`;return;}
+
+  const cards=[...checkins].reverse().map((ci,ri)=>{
+    const idx=checkins.length-1-ri;
+    const prev=idx>0?checkins[idx-1]:null;
+    const period=idx===0?'Check-in inicial':`Check-in #${idx+1}`;
+
+    const hasKnee=ci.ext_esq||ci.ext_dir||ci.flex_esq||ci.flex_dir;
+    const kneeSection=hasKnee?`
+      <div style="margin-top:8px;padding-top:8px;border-top:1px solid #4a2d80;">
+        <div style="font-size:10px;font-weight:700;color:#b97fff;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px">🦵 Equilíbrio LCA</div>
+        ${(ci.ext_esq||ci.ext_dir)?`
+          <div class="checkin-row"><span class="checkin-label">Extensora Esq/Dir</span><span class="checkin-val">${ci.ext_esq||'—'}/${ci.ext_dir||'—'} kg</span></div>
+          ${kneeDiff(ci.ext_esq,ci.ext_dir)}
+        `:''}
+        ${(ci.flex_esq||ci.flex_dir)?`
+          <div class="checkin-row" style="margin-top:4px"><span class="checkin-label">Flexora Esq/Dir</span><span class="checkin-val">${ci.flex_esq||'—'}/${ci.flex_dir||'—'} kg</span></div>
+          ${kneeDiff(ci.flex_esq,ci.flex_dir)}
+        `:''}
+      </div>`:'';
+
+    return `<div class="checkin-card">
+      <div class="checkin-card-header"><div class="checkin-date">${fmtDateShort(ci.date)}</div><div class="checkin-period">${period}</div></div>
+      <div class="checkin-body">
+        ${ci.peso?`<div class="checkin-row"><span class="checkin-label">Peso</span><span class="checkin-val">${ci.peso} kg${prev&&prev.peso?delta(ci.peso,prev.peso,' kg'):''}</span></div>`:''}
+        ${ci.peito?`<div class="checkin-row"><span class="checkin-label">Peito</span><span class="checkin-val">${ci.peito} cm${prev&&prev.peito?delta(ci.peito,prev.peito,' cm'):''}</span></div>`:''}
+        ${ci.cintura?`<div class="checkin-row"><span class="checkin-label">Cintura</span><span class="checkin-val">${ci.cintura} cm${prev&&prev.cintura?delta(ci.cintura,prev.cintura,' cm'):''}</span></div>`:''}
+        ${ci.quadril?`<div class="checkin-row"><span class="checkin-label">Quadril</span><span class="checkin-val">${ci.quadril} cm${prev&&prev.quadril?delta(ci.quadril,prev.quadril,' cm'):''}</span></div>`:''}
+        ${ci.braco?`<div class="checkin-row"><span class="checkin-label">Braço</span><span class="checkin-val">${ci.braco} cm${prev&&prev.braco?delta(ci.braco,prev.braco,' cm'):''}</span></div>`:''}
+        ${ci.feeling?`<div class="checkin-row"><span class="checkin-label">Energia</span><span class="checkin-val">${FEEL_EMOJI[ci.feeling]} ${['','Baixa','Regular','Boa','Ótima','🔥 Máxima'][ci.feeling]}</span></div>`:''}
+        ${kneeSection}
+        ${ci.nota?`<div class="checkin-note">"${ci.nota}"</div>`:''}
+        <div class="photo-reminder">📸 Lembrou de tirar a foto?</div>
+      </div>
+    </div>`;
+  }).join('');
+  el.innerHTML=cards;
+}
+
+// ══ INIT ══
+async function init(){
+  try{
+    await initDB();
+    document.getElementById('dbLoading').style.display='none';
+    document.getElementById('homeScreen').classList.add('active');
+    await renderHome();
+  }catch(e){
+    document.getElementById('dbLoading').innerHTML='<div style="font-size:24px">⚠️</div><div style="color:var(--red);font-size:14px;text-align:center;padding:20px">Erro ao iniciar.<br>Tente reabrir o app.</div>';
+    console.error(e);
+  }
+}
+init();
+</script>
+</body>
+</html>
